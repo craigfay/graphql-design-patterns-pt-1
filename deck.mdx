@@ -1,0 +1,91 @@
+import {
+  CodeSurfer,
+  CodeSurferColumns,
+  Step,
+} from "code-surfer";
+
+import { nightOwl, oceanicNext, shadesOfPurple } from "@code-surfer/themes";
+
+export const theme = oceanicNext;
+
+## GraphQL Design Patterns 👋
+
+[Econify](https://econify.com) | [Craig Fay](https://github.com/craigfay)
+
+---
+
+<CodeSurfer>
+
+```graphql title="The Error Type"
+type Error {
+  unique_name: String
+  message: String
+  is_internal: Boolean
+}
+
+{
+  "unique_name": "INVALID_AUTH_CREDENTIALS",
+  "message": "Expected `auth` field to be a base-64 encoded string",
+  "is_internal": false
+}
+```
+
+```graphql title="The Error Type" 2,8
+type Error {
+  unique_name: String
+  message: String
+  is_internal: Boolean
+}
+
+{
+  "unique_name": "INVALID_AUTH_CREDENTIALS",
+  "message": "Expected `auth` field to be a base-64 encoded string",
+  "is_internal": false
+}
+```
+
+```graphql title="The Error Type" 3,9
+type Error {
+  unique_name: String
+  message: String
+  is_internal: Boolean
+}
+
+{
+  "unique_name": "INVALID_AUTH_CREDENTIALS",
+  "message": "Expected `auth` field to be a base-64 encoded string",
+  "is_internal": false
+}
+```
+
+```graphql title="The Error Type" 4,10
+type Error {
+  unique_name: String
+  message: String
+  is_internal: Boolean
+}
+
+{
+  "unique_name": "INVALID_AUTH_CREDENTIALS",
+  "message": "Expected `auth` field to be a base-64 encoded string",
+  "is_internal": false
+}
+```
+
+```graphql title="The Error Type" 4,8:10
+type Error {
+  unique_name: String
+  message: String
+  is_internal: Boolean
+}
+
+{
+  "unique_name": "UNEXPECTED_AUTH_FAILURE",
+  "message": "Having trouble authenticating. Please try again later.",
+  "is_internal": true,
+}
+```
+
+</CodeSurfer>
+
+

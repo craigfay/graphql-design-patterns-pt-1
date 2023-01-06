@@ -1,3 +1,4 @@
+
 import {
   CodeSurfer,
   CodeSurferColumns,
@@ -14,78 +15,441 @@ export const theme = oceanicNext;
 
 ---
 
+## What We Won't Discuss
+
+* Rate Limiting
+* Auth & Permissions
+* Subscriptions
+
+___
+
+## What We Will Discuss
+
+* Error Types
+* Result Types
+* Pagination Types
+* Filter Types
+
+___
+
+
 <CodeSurfer>
 
-```graphql title="The Error Type"
+```graphql title="Choose Your Own Errors"
 type Error {
-  unique_name: String
+  uniqueName: String
   message: String
-  is_internal: Boolean
+  isInternal: Boolean
 }
 
 {
-  "unique_name": "INVALID_AUTH_CREDENTIALS",
+  "uniqueName": "INVALID_AUTH_CREDENTIALS",
   "message": "Expected `auth` field to be a base-64 encoded string",
-  "is_internal": false
+  "isInternal": false
 }
 ```
 
-```graphql title="The Error Type" 2,8
+```diff title="Choose Your Own Errors" 2,8
+```
+
+```diff title="Choose Your Own Errors" 3,9
+```
+
+```diff title="Choose Your Own Errors" 4,10
+```
+
+```graphql title="Choose Your Own Errors"
 type Error {
-  unique_name: String
+  uniqueName: String
   message: String
-  is_internal: Boolean
+  isInternal: Boolean
 }
 
 {
-  "unique_name": "INVALID_AUTH_CREDENTIALS",
-  "message": "Expected `auth` field to be a base-64 encoded string",
-  "is_internal": false
+  "uniqueName": "UNEXPECTED_AUTH_ERROR",
+  "message": "Unable to authenticate, please try again later",
+  "isInternal": true,
 }
 ```
 
-```graphql title="The Error Type" 3,9
-type Error {
-  unique_name: String
-  message: String
-  is_internal: Boolean
+```graphql title="Choose Your Own Errors" 3,8
+[
+  {
+    "uniqueName": "INVALID_FIELD:firstName",
+    "message": "Only alphabetical characters are allowed",
+    "isInternal": false
+  },
+  {
+    "uniqueName": "INVALID_FIELD:dateOfBirth",
+    "message": "Expect a date in the form MM/DD/YYYY",
+    "isInternal": false
+  },
+]
+```
+
+```graphql title="Choose Your Own Errors" 6,12
+[
+  {
+    "uniqueName": "INVALID_FIELD",
+    "message": "Only alphabetical characters are allowed",
+    "isInternal": false,
+    "culprit": "firstName",
+  },
+  {
+    "uniqueName": "INVALID_FIELD",
+    "message": "Expect a date in the form MM/DD/YYYY",
+    "isInternal": false,
+    "culprit": "dateOfBirth",
+  },
+]
+```
+
+```graphql title="Use Result Types To Fail Gracefully"
+type SingleArticleResult {
+  errors: [Error]
+  payload: Article
 }
 
-{
-  "unique_name": "INVALID_AUTH_CREDENTIALS",
-  "message": "Expected `auth` field to be a base-64 encoded string",
-  "is_internal": false
+
+query GetArticle {
+  article(id: 1) {
+    errors { message, uniqueName }
+    payload {
+      id,
+      title,
+      authors {
+        payload { nodes { id, firstName } }
+        errors { message, uniqueName }
+      }
+    }
+  }
+}
+
+```
+
+```diff title="Use Result Types To Fail Gracefully" 2,9
+```
+
+```diff title="Use Result Types To Fail Gracefully" 3,10:17
+```
+
+```diff title="Use Result Types To Fail Gracefully" 13:16
+
+```
+
+
+
+```graphql title="A Subtle Point"
+# SELECT * FROM articles
+query articleList(): [Article]
+```
+
+```graphql title="A Subtle Point"
+# SELECT * FROM articles
+query articleList(): [Article]
+
+
+# SELECT ? FROM articles WHERE ? LIMIT ?
+query articleList(input: ArticleSearchCriteria): ArticleSearchResults
+```
+
+
+```javascript title="What is a Cursor?"
+function encodeCursor(id, createdAt) {
+  let decoded = String(id) + ";" + createdAt.toISOString();
+  return btoa(decoded);
 }
 ```
 
-```graphql title="The Error Type" 4,10
-type Error {
-  unique_name: String
-  message: String
-  is_internal: Boolean
+```javascript title="What is a Cursor?" 2[16:26],6[5]
+function encodeCursor(id, createdAt) {
+  let decoded = String(id) + ";" + createdAt.toISOString();
+  return btoa(decoded);
+}
+
+// "1;2023-01-06T16:39:04.675Z" -> "MTsyMDIzLTAxLTA2VDE2OjM5OjA0LjY3NVo="
+```
+
+```diff title="What is a Cursor?" 2[16:26],6[5]
+```
+
+```diff title="What is a Cursor?" 2[29:33],6[6]
+```
+
+```diff title="What is a Cursor?" 2[36:60],6[7:30]
+```
+
+```diff title="What is a Cursor?" 3[10:22],6[37:72]
+```
+
+
+```graphql title="Paginate Using Cursors"
+query {
+  articleList(criteria: {
+    first: 3,
+    after: "MXwyMDIyLTEwLTE3IDE3OjU4OjM1Ljk4MTgzMSswMDowMA=="
+  }) {
+    errors: { message },
+    payload {
+      firstcursor
+      lastCursor
+      hasPrevPage
+      hasNextPage
+      nodes {
+        id
+        title
+      }
+    }
+  }
 }
 
 {
-  "unique_name": "INVALID_AUTH_CREDENTIALS",
-  "message": "Expected `auth` field to be a base-64 encoded string",
-  "is_internal": false
+  "data": {
+    "articleList": {
+      "errors": [],
+      "payload": {
+        "firstCursor": "MnwyMDIyLTEwLTE3IDE5OjQyOjI2LjA2MDM5NyswMDowMA==",
+        "lastCursor": "MnwyMDIyLTEwLTE3IDE5OjQyOjI2LjA2MDM5NyswMDowMA==",
+        "hasPrevPage": true,
+        "hasNextPage": true,
+        "nodes": [
+          {
+            "id": 21034538,
+            "title": "New York City public schools ban ChatGPT from its devices and networks"
+          },
+          {
+            "id": 21034539,
+            "title": "You against the machine: Can you spot which image was created by AI?"
+          },
+          {
+            "id": 21034540,
+            "title": "Silicon Valley is coming for your gut biome"
+          }
+        ]
+      }
+    }
+  }
 }
 ```
 
-```graphql title="The Error Type" 4,8:10
-type Error {
-  unique_name: String
-  message: String
-  is_internal: Boolean
+```diff title="Paginate Using Cursors" 3:4
+```
+
+```graphql title="Paginate Using Cursors" 3:4
+query {
+  articleList(criteria: {
+    last: 3,
+    before: "MXwyMDIyLTEwLTE3IDE3OjU4OjM1Ljk4MTgzMSswMDowMA=="
+  }) {
+    errors: { message },
+    payload {
+      firstCursor
+      lastCursor
+      hasPrevPage
+      hasNextPage
+      nodes {
+        id
+        title
+      }
+    }
+  }
 }
 
 {
-  "unique_name": "UNEXPECTED_AUTH_FAILURE",
-  "message": "Having trouble authenticating. Please try again later.",
-  "is_internal": true,
+  "data": {
+    "articleList": {
+      "errors": [],
+      "payload": {
+        "firstCursor": "MnwyMDIyLTEwLTE3IDE5OjQyOjI2LjA2MDM5NyswMDowMA==",
+        "lastCursor": "MnwyMDIyLTEwLTE3IDE5OjQyOjI2LjA2MDM5NyswMDowMA==",
+        "hasPrevPage": true,
+        "hasNextPage": true,
+        "nodes": [
+          {
+            "id": 21034538,
+            "title": "New York City public schools ban ChatGPT from its devices and networks"
+          },
+          {
+            "id": 21034539,
+            "title": "You against the machine: Can you spot which image was created by AI?"
+          },
+          {
+            "id": 21034540,
+            "title": "Silicon Valley is coming for your gut biome"
+          }
+        ]
+      }
+    }
+  }
 }
+```
+
+```diff title="Paginate Using Cursors" 8:11
+```
+
+```diff title="Paginate Using Cursors" 25:28
+```
+
+```diff title="Paginate Using Cursors"
+```
+
+
+```graphql title="Why Not Offset Pagination?" 1:12
+query {
+  articlesList(criteria: {
+    limit: 10,
+    offset: 20
+  }) {
+    payload {
+      id
+      title
+    }
+  }
+}
+```
+
+```graphql title="Brief Treatment of Ordering" 1:17
+query {
+  articlesList(criteria: {
+    first: 50,
+    after: "MnwyMDIyLTEwLTE3IDE5OjQyOjI2LjA2MDM5NyswMDowMA==",
+    orderBy: ["title"],
+  }) {
+    payload {
+      firstCursor
+      lastCursor
+      nodes {
+        id
+        title
+      }
+    }
+  }
+}
+```
+
+```diff title="Brief Treatment of Ordering" 5,8,9
+```
+
+
+```graphql title="Filter Types"
+input StringFilter {
+  eq: String
+  startsWith: String
+  endsWith: String
+  contains: String
+  istartsWith: String # case insensitive
+  iendsWith: String
+  icontains: String
+  in: [String]
+}
+
+input IntFilter {
+  eq: Int
+  gt: Int
+  lt: Int
+  gte: Int
+  lte: Int
+  in: [Int]
+}
+
+input DateTimeFilter {
+  eq: DateTime
+  gt: DateTime
+  lt: DateTime
+  gte: DateTime
+  lte: DateTime
+  in: [DateTime]
+}
+
+input ArticleSearchFilters {
+  id: IntFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  title: StringFilter
+  isPublished: BooleanFilter
+}
+
+input ArticleSearchCriteria {
+  filters: ArticleSearchFilters
+  first: Int,
+  last: Int,
+  after: String,
+  before: String,
+}
+
+query {
+  articleList(criteria: {
+    filters: {
+      createdAt: { gt: "2022-10-11T20:09:40.326Z" },
+      teaserText: { icontains: "ChatGPT" },
+    }
+  }) {
+    payload {
+      nodes {
+        id
+        title
+        teaserText
+        createdAt
+      }
+    }
+  }
+}
+```
+
+
+```diff title="Filter Types" 1:10
+```
+
+```diff title="Filter Types" 12:19
+```
+
+```diff title="Filter Types" 21:28
+```
+
+```diff title="Filter Types" 30:36
+```
+
+```diff title="Filter Types" 30:36
+```
+
+```diff title="Filter Types" 38:44
+```
+
+```diff title="Filter Types" 39
+```
+
+```diff title="Filter Types" 48:51
+```
+
+
+```graphql title="Bi-Directional Relationships"
+type Article {
+  id: ID
+  title: String
+  teaserText: String
+  isPublished: String
+
+  # Article <-> Author relationship is accessible from both directions
+  author: SingleAuthorResult
+}
+
+type Author {
+  id: ID
+  firstName: String
+  lastName: String
+
+  # Article <-> Author relationship is accessible from both directions
+  articleList(input: ArticleSearchCriteria): ArticleSearchResults
+}
+```
+
+
+```diff title="Bi-Directional Relationships" 7:8,16:17
 ```
 
 </CodeSurfer>
 
+---
+
+## Questions?
 

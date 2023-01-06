@@ -1,8 +1,8 @@
 
+## GraphQL Design Patterns Pt. 1 (A Presentation)
 
-# MDX Deck + Code Surfer template
+These are the slides for tech talk, created with [Code Surfer](https://github.com/pomber/code-surfer)
 
-This project was generated with the `npm init code-surfer-deck` command.
 
 ## Development
 
@@ -12,8 +12,6 @@ To run the presentation deck in development mode:
 npm start
 ```
 
-Edit the [`deck.mdx`](deck.mdx) file to get started.
-
 ## Exporting
 
 To build the presentation deck:
@@ -22,6 +20,8 @@ To build the presentation deck:
 npm run build
 ```
 
-For more documentation see [MDX Deck](https://github.com/jxnblk/mdx-deck) and [Code Surfer](https://codesurfer.pomb.us/)
+## Additional Resources
 
-[Public GraphQL APIs](https://github.com/kitten/graphql-apis)
+- [Public GraphQL APIs](https://github.com/kitten/graphql-apis)
+
+
